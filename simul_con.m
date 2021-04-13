@@ -4,7 +4,7 @@
 function [lab] = simul_con(x_trajData, Xnew)
 
     flags = zeros(size(Xnew.A,1),size(x_trajData,2)); lab = zeros(1,size(x_trajData,2)); 
-    tol_con = 1e-5;                                                     % constraint violation tolerance 
+    tol_con = 1e-5;                                    % constraint violation tolerance 
 
     for i = 1:size(x_trajData,2)
         flags(:,i) = ((Xnew.A)*x_trajData(:,i) <= Xnew.b + tol_con);
