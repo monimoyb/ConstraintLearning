@@ -3,15 +3,18 @@
 % Stopping conditions are:
 % 1) if cvx hull estimate is chosen: robustness cerificate obtained or back-up set passes proposition 1 check
 % 2) svm based estimate is chosen: set passes proposition 1 check
+
 %% When to run this code?
-% All the data have been saved in the .mat files in this repository, having
-% run this code for the 3 cases shown in
-% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9303765. Run
-% this code only if new data is needed. Otherwise go to file compare_code.m
+% All the data have been saved in the .mat files in this repository, having run this code for the 3 cases shown 
+% in https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9303765. Run this code only if new data is needed. 
+% Otherwise go to file compare_code.m
+
+% Monimoy Bujarbaruah
+
 %%
 clc
 clear all; close all;
-rng(2);                                                                      % needed for comparison between different epsilons and betas 
+rng(2);                                                            % needed for comparison between different epsilons and betas 
 
 %% Define system parameters and check for feasibility
 [A,B,Cold,Dold,bold,Xold,Cnew,Dnew,bnew,Xnew,U,W, x_0, Q,R,N, x_ref,simsteps, nx, nu] = sys_load();
@@ -24,20 +27,20 @@ iC = Nlb_probVer + 500;                                            % total numbe
 
 %% Some key parameters 
 %%%Choose these
-step_size = 0.5;                                                         % needed for set scaling to ensure MPC feasibility
-cvx_flag = 0;                                                             % pick this. If 0 then SVM method. If 1 then cvx hull method. 
-count_succ = 0;                                                         % successful iteration count for Proposition 1 check
+step_size = 0.5;                                                   % needed for set scaling to ensure MPC feasibility
+cvx_flag = 0;                                                      % pick this. If 0 then SVM method. If 1 then cvx hull method. 
 %%% These are fixed
-rob_flg = 0;                                                               % checks for a robustness cerificate (cvx hull method. )
-prob_flg = 0;                                                             % probabilistic certificate found? (used in svm method) 
-prob_flg_cvx = 0;                                                      % probabilistic back up certificate found? (used in cvx hull method) 
+count_succ = 0;                                                    % successful iteration count for Proposition 1 check
+rob_flg = 0;                                                       % checks for a robustness cerificate (cvx hull method)
+prob_flg = 0;                                                      % probabilistic certificate found? (used in svm method) 
+prob_flg_cvx = 0;                                                  % probabilistic back up certificate found? (used in cvx hull method) 
 
 %% Essential arrays and initializations
 x_cl = zeros(nx,simsteps+1,iC);
 u_cl = zeros(nu,simsteps,iC);
 cost_iter = zeros(1,iC); 
-Xhat(1) = Xold;                                                         % initial estimate
-Xhat_bck(1) = Xold;                                                  % backup set used in the cvx hull based method
+Xhat(1) = Xold;                                                    % initial estimate
+Xhat_bck(1) = Xold;                                                % backup set used in the cvx hull based method
 x_cvx = [x_0'; x_ref']; 
 lab_init = simul_con(x_cvx', Xnew);
 x_net = x_cvx; 
@@ -47,7 +50,7 @@ y_net = lab_init';
 % These can also be collected by applying random inputs to the system. For now, just using randomly sampled states.
 %%%
 % warm start data count
-count_ws = 40;                                                         % good choices' tip:10 cvx, 40 for svm eps = .30,  60 for svm eps = .50 
+count_ws = 40;                                                     % good choices' tip:10 cvx, 40 for svm eps = .30,  60 for svm eps = .50 
 
 % create some random points
 rand_points = zeros(nx,count_ws);
@@ -108,9 +111,9 @@ for iter_count = 1:iC
     
     %% If not robust and paused, continue scaling estimates until checks are passed
     while (term_flg== 1 || feas == 1) 
-        if cvx_flag == 0                                                                                   % inside SVM method
+        if cvx_flag == 0                                                                          % inside SVM method
             disp('****SVM ESTIMATED SET BEING SCALED****');
-            scale = (count/5)*step_size;                                                              % scaling strategy
+            scale = (count/5)*step_size;                                                          % scaling strategy
             Xhat(iter_count) = intersect(Xold,scale*Xhat(iter_count));   
 
             % new estimates after scaling
@@ -129,7 +132,7 @@ for iter_count = 1:iC
             [M, v, feas] = solveMatrices(A, B, N, W, dim_t, matF, mat_c, matH, matG, x_0, x_ref, Q, R, Pinf, 0); 
             count = count + 1; 
 
-        else                                                                                               % inside cvx hull method 
+        else                                                                                    % inside cvx hull method 
             
             if count == 1
                 scale = 1;
@@ -185,12 +188,12 @@ for iter_count = 1:iC
     % Need to form all cases here 
     [lab_iter] = simul_con(x_cl(:,:,iter_count), Xnew);
  
-    if cvx_flag == 1                                                                                          % cvx hull method 
+    if cvx_flag == 1                                                                       % cvx hull method 
         disp('******INSIDE CVX METHOD******')
         if rob_flg == 0   
             disp('******NOT ROBUST YET******') 
             for j = 1:size(lab_iter,2)
-                 if lab_iter(1,j) == 1                                                                       % satisfies constraints
+                 if lab_iter(1,j) == 1                                                     % satisfies constraints
                     x_cvx  = [x_cvx; x_cl(:,j,iter_count)']; 
                  end
             end
@@ -198,7 +201,7 @@ for iter_count = 1:iC
             
             % KEEPING AN SVM BACKUP INSTEAD OF ARBITRARY SCALING %%  
             if prob_flg_cvx == 0   
-                if prod(lab_iter) == 1                                                                     % only if violations are seen, update 
+                if prod(lab_iter) == 1                                                     % only if violations are seen, update 
                     disp('******NO NEW VIOLATIONS******') 
                     if Xnew.contains(Xhat_bck(iter_count)) ==1
                        disp('******SVM FOUND AN INNER APPROXIMATION!!!******') 
@@ -212,7 +215,7 @@ for iter_count = 1:iC
                 else
                     disp('******NEW VIOLATIONS SEEN******') 
                     count_succ = 0; 
-                    x_net = [x_net; x_cl(:,:,iter_count)'];                                           % using all data
+                    x_net = [x_net; x_cl(:,:,iter_count)'];                                % using all data
                     y_net = [y_net; lab_iter']; 
                    %% Train SVM Boundary and See Performance 
                     SVMModel = fitcsvm(x_net, y_net, 'KernelFunction','rbf');
@@ -224,20 +227,20 @@ for iter_count = 1:iC
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
             else
                 disp('******SVM BACKUP SET CERTIFIED FOR CVX CASE******')
-                Xhat_bck(iter_count+1)  = Xhat_bck(iter_count);                             % stop updates. probabilistic backup certificate obtained 
+                Xhat_bck(iter_count+1)  = Xhat_bck(iter_count);                            % stop updates. probabilistic backup certificate obtained 
                 keyboard
             end
 
         else
             disp('******CVX AND ROBUST******')
-            Xhat(iter_count+1) = Xhat(iter_count);                                                % robust guarantees hold;  
+            Xhat(iter_count+1) = Xhat(iter_count);                                         % robust guarantees hold;  
             keyboard
         end
      
     else
         disp('******INSIDE SVM METHOD******')                                              % SVM method
         if prob_flg == 0   
-            if prod(lab_iter) == 1                                                                          % only if violations are seen, update 
+            if prod(lab_iter) == 1                                                         % only if violations are seen, update 
                  disp('******NO NEW VIOLATIONS******') 
                  if Xnew.contains(Xhat(iter_count)) ==1
                        disp('******SVM FOUND AN INNER APPROXIMATION!!!******') 
@@ -252,7 +255,7 @@ for iter_count = 1:iC
             else
                 disp('******NEW VIOLATIONS SEEN******') 
                 count_succ = 0; 
-                x_net = [x_net; x_cl(:,:,iter_count)'];                                                % using all data
+                x_net = [x_net; x_cl(:,:,iter_count)'];                                    % using all data
                 y_net = [y_net; lab_iter']; 
                 %% Train SVM Boundary and See Performance 
                 SVMModel = fitcsvm(x_net, y_net, 'KernelFunction','rbf');
@@ -263,7 +266,7 @@ for iter_count = 1:iC
         
         else
             disp('******SVM AND PROB CERTIFIED******')
-            Xhat(iter_count+1)  = Xhat(iter_count);                                                % stop updates. Certificate obtained 
+            Xhat(iter_count+1)  = Xhat(iter_count);                                       % stop updates. Certificate obtained 
             XhatsvmOut = Xhat(iter_count);
             keyboard
         end
@@ -274,8 +277,7 @@ for iter_count = 1:iC
 
 end
 
-%% Save
-% Run this part once the code stops running
-% Save all the data once estimated constraint sets converge
+%% Saving the Data 
+% Run this part once the code stops running (Takes a while). Save all the data. 
 save('allData_XYZ.mat');
 % Then run the compare_code.m file for all plots and tables.
