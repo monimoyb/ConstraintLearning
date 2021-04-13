@@ -28,7 +28,7 @@ function [A,B,Cold,Dold,bold,Xold,Cnew,Dnew,bnew,Xnew,U,W, x_0, Q,R,N, x_ref,sim
     Xnew = Polyhedron('A',Cnew(1:6,:),'b',bnew(1:6,:));
     %% Defining Noise  Bounds 
     wub_true =  0.5;                                   % Upper bound
-    wlb_true = -0.5;                                    % Lower bound 
+    wlb_true = -0.5;                                   % Lower bound 
     W = Polyhedron('lb',wlb_true*ones(nx,1),'ub',wub_true*ones(nx,1));
     %% Starting condition and reference
     x_0 = [-15; 15];    
