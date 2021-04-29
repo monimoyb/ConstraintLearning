@@ -13,28 +13,33 @@ rng(2)
 
 % first cvx hull based method
 load('allDataCVXHull.mat'); 
+% this chunk needed only for the table
 [prob_failcvx, cost_averagecvx] = MC_sim(XhatcvxOut, 100); 
 
 % svm with eps = 0.3
 load('allDataSVM30.mat');
 XhatsvmOut30 = XhatsvmOut;
+% this chunk needed only for the table
 [prob_failsvm30, cost_averagesvm30] = MC_sim(XhatsvmOut30, 100); 
 
 % svm with eps = 0.5
 load('allDataSVM50.mat'); 
 XhatsvmOut50 = XhatsvmOut;
+% this chunk needed only for the table
 [prob_failsvm50, cost_averagesvm50] = MC_sim(XhatsvmOut50, 100); 
 
-%% Computing the true cost (if all constraints were known) 
+%% Computing the true cost (if all constraints were known)
+% this chunk needed only for the table
 [prob_failXnew, cost_averageXnew] = MC_sim(Xnew, 100); 
 
 %% Plotting for Fig 1 of https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9303765
 figure; 
 plot(XhatsvmOut50,'color','r','alpha',0.9); hold on; 
 hold on; 
+plot(XhatcvxOut,'color','y'); hold on; 
 plot(XhatsvmOut30,'color','b','alpha',0.5); grid on;
 hold on; 
 plot(Xnew,'color','k','alpha',0, 'linewidth',4);
-legend({'With SVM: $\epsilon = 0.5$',...
-    'With SVM: $\epsilon=0.3$','True','CVX Hull'},'Interpreter','latex','fontsize',25);
+legend({'With SVM: $\epsilon = 0.5$','CVX Hull',...
+    'With SVM: $\epsilon=0.3$','True'},'Interpreter','latex','fontsize',25);
 set(gca,'Fontsize',25,'fontweight','Bold');
